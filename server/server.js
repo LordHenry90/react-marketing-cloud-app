@@ -5,6 +5,8 @@ const path = require('path');
 
 const app = express();
 app.use(bodyParser.json());
+
+// Servire i file statici dalla cartella build
 app.use(express.static(path.join(__dirname, '../client/build')));
 
 app.post('/api/connect', async (req, res) => {
@@ -45,6 +47,7 @@ app.post('/api/dataextensions', async (req, res) => {
     }
 });
 
+// Tutte le altre richieste vengono reindirizzate al file index.html
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, '../client/build/index.html'));
 });
