@@ -71,26 +71,32 @@ const Wizard = () => {
                 const headers = csvData[0];
 
                 const dataExtensions = [];
-                const fieldsIndex = headers.findIndex(header => header.startsWith('fields__'));
+                let currentDataExtension = null;
 
                 csvData.slice(1).forEach(row => {
+                    if (!currentDataExtension || row[0] !== currentDataExtension.name || row[1] !== currentDataExtension.key) {
+                        currentDataExtension = {
+                            name: row[0],
+                            key: row[1],
+                            isSendable: true,
+                            categoryId: row[2],
+                            sendableCustomObjectField: row[3],
+                            sendableSubscriberField: row[4],
+                            fields: []
+                        };
+                        dataExtensions.push(currentDataExtension);
+                    }
+
                     const fields = [];
-                    for (let i = fieldsIndex; i < headers.length; i++) {
+                    for (let i = 5; i < headers.length; i++) {
                         const fieldHeader = headers[i].split('__')[1];
                         fields.push({
-                            [fieldHeader]: row[i]
+                            name: fieldHeader,
+                            value: row[i]
                         });
                     }
 
-                    dataExtensions.push({
-                        name: row[0],
-                        key: row[1],
-                        isSendable: true,
-                        categoryId: row[2],
-                        sendableCustomObjectField: row[3],
-                        sendableSubscriberField: row[4],
-                        fields: fields
-                    });
+                    currentDataExtension.fields.push(...fields);
                 });
 
                 resolve(dataExtensions);
