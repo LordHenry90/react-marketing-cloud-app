@@ -4,10 +4,10 @@
   "description": "A Heroku app with React and Marketing Cloud integration",
   "main": "server/server.js",
   "scripts": {
-	"client": "cd client && npm start",
+    "client": "cd client && npm start",
     "server": "cd server && node server.js",
     "dev": "concurrently \"npm run server\" \"npm run client\"",
-    "build": "npm install --prefix client && npm run build --prefix client && npm run server"
+    "build": "npm install --prefix client && npm run build --prefix client"
   },
   "dependencies": {
     "axios": "^0.21.1",
