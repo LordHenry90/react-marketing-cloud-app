@@ -88,21 +88,23 @@ const Wizard = () => {
                     }
 
                     for (let i = 5; i < headers.length; i += 11) {
-                        const field = {
-                            name: row[i],
-                            type: row[i + 1],
-                            length: row[i + 2],
-                            ordinal: row[i + 3],
-                            isPrimaryKey: row[i + 4] === 'true',
-                            isNullable: row[i + 5] === 'true',
-                            isTemplateField: row[i + 6] === 'true',
-                            isInheritable: row[i + 7] === 'true',
-                            isOverridable: row[i + 8] === 'true',
-                            isHidden: row[i + 9] === 'true',
-                            isReadOnly: row[i + 10] === 'true',
-                            mustOverride: row[i + 11] === 'true'
-                        };
-                        currentDataExtension.fields.push(field);
+                        if (row[i] !== undefined && row[i + 1] !== undefined) {
+                            const field = {
+                                name: row[i],
+                                type: row[i + 1],
+                                length: parseInt(row[i + 2]),
+                                ordinal: parseInt(row[i + 3]),
+                                isPrimaryKey: row[i + 4] === 'true',
+                                isNullable: row[i + 5] === 'true',
+                                isTemplateField: row[i + 6] === 'true',
+                                isInheritable: row[i + 7] === 'true',
+                                isOverridable: row[i + 8] === 'true',
+                                isHidden: row[i + 9] === 'true',
+                                isReadOnly: row[i + 10] === 'true',
+                                mustOverride: row[i + 11] === 'true'
+                            };
+                            currentDataExtension.fields.push(field);
+                        }
                     }
                 });
 
