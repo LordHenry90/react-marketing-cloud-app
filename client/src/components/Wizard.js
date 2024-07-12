@@ -69,34 +69,30 @@ const Wizard = () => {
                 const sheet = workbook.Sheets[workbook.SheetNames[0]];
                 const csvData = utils.sheet_to_json(sheet, { header: 1 });
                 const headers = csvData[0];
-                const dataExtensions = csvData.slice(1).map(row => {
-                    const obj = {};
-                    headers.forEach((header, index) => {
-                        obj[header] = row[index];
-                    });
-                    return {
-                        name: obj.name,
-                        key: obj.key,
+
+                const dataExtensions = [];
+                const fieldsIndex = headers.findIndex(header => header.startsWith('fields__'));
+
+                csvData.slice(1).forEach(row => {
+                    const fields = [];
+                    for (let i = fieldsIndex; i < headers.length; i++) {
+                        const fieldHeader = headers[i].split('__')[1];
+                        fields.push({
+                            [fieldHeader]: row[i]
+                        });
+                    }
+
+                    dataExtensions.push({
+                        name: row[0],
+                        key: row[1],
                         isSendable: true,
-                        sendableCustomObjectField: obj.sendableCustomObjectField,
-                        sendableSubscriberField: obj.sendableSubscriberField,
-                        categoryId: obj.categoryId,
-                        fields: [{
-                            name: obj.fields__name,
-                            type: obj.fields__type,
-                            length: obj.fields__length,
-                            ordinal: obj.fields__ordinal,
-							isNullable: obj.fields__isNullable,
-							isPrimaryKey: obj.fields__isPrimaryKey,
-							isTemplateField: obj.fields__isTemplateField,
-							isInheritable: obj.fields__isInheritable,
-							isOverridable: obj.fields__isOverridable,
-							isHidden: obj.fields__isHidden,
-							isReadOnly: obj.fields__isReadOnly,
-							mustOverride: obj.fields__mustOverride
-                        }]
-                    };
+                        categoryId: row[2],
+                        sendableCustomObjectField: row[3],
+                        sendableSubscriberField: row[4],
+                        fields: fields
+                    });
                 });
+
                 resolve(dataExtensions);
             };
             reader.onerror = (error) => reject(error);
@@ -113,6 +109,7 @@ const Wizard = () => {
                 <div className="slds-progress-bar slds-progress-bar_circular">
                     <span className="slds-progress-bar__value" style={{ width: `${(step / (steps.length - 1)) * 100}%` }}></span>
                 </div>
+                {error && <div className="slds-text-color_error">{error}</div>}
                 {step === 0 ? (
                     <div>
                         <div className="slds-form-element slds-m-bottom_medium">
