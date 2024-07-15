@@ -12,6 +12,7 @@ const Wizard = () => {
     const [file, setFile] = useState(null);
     const [accessToken, setAccessToken] = useState('');
     const [error, setError] = useState('');
+    const batchSize = 200; // Default batch size
 
     const steps = ['Configure Connection', 'Upload CSV'];
 
@@ -19,39 +20,22 @@ const Wizard = () => {
         setError('');
         if (step === 0) {
             try {
-                console.log('Sending connect request:', {
-                    clientId,
-                    clientSecret,
-                    authBaseUri
-                });
                 const response = await axios.post('/api/connect', {
                     clientId,
                     clientSecret,
                     authBaseUri
                 });
-                console.log('Received access token:', response.data.access_token);
                 setAccessToken(response.data.access_token);
                 setStep(step + 1);
             } catch (error) {
-                console.error('Error connecting to Marketing Cloud:', error);
                 setError('Error connecting to Marketing Cloud: ' + (error.response ? error.response.data : error.message));
             }
         } else {
             try {
                 const dataExtensions = await parseCsv(file);
-                console.log('Sending data extensions request:', {
-                    accessToken,
-                    restBaseUri,
-                    dataExtensions
-                });
-                await axios.post('/api/dataextensions', {
-                    accessToken,
-                    restBaseUri,
-                    dataExtensions
-                });
+                await createDataExtensionsInBatch(dataExtensions);
                 alert('Data Extensions created successfully');
             } catch (error) {
-                console.error('Error creating Data Extensions:', error);
                 setError('Error creating Data Extensions: ' + (error.response ? error.response.data : error.message));
             }
         }
@@ -111,7 +95,7 @@ const Wizard = () => {
                         dataExtensions.push(currentDataExtension);
                     }
 
-                    for (let i = 5; i < headers.length; i += 11) {
+                    for (let i = 5; i < headers.length; i += 12) {
                         if (row[i] !== undefined && row[i + 1] !== undefined) {
                             const field = {
                                 name: row[i],
@@ -137,6 +121,23 @@ const Wizard = () => {
             reader.onerror = (error) => reject(error);
             reader.readAsArrayBuffer(file);
         });
+    };
+
+    const createDataExtensionsInBatch = async (dataExtensions) => {
+        for (let i = 0; i < dataExtensions.length; i += batchSize) {
+            const batch = dataExtensions.slice(i, i + batchSize);
+            try {
+                await axios.post('/api/dataextensions', {
+                    accessToken,
+                    restBaseUri,
+                    dataExtensions: batch
+                });
+            } catch (error) {
+                console.error('Error creating batch:', error);
+                setError('Error creating batch: ' + (error.response ? error.response.data : error.message));
+                throw error; // Re-throw error to stop further processing
+            }
+        }
     };
 
     return (
