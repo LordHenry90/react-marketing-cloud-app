@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { read, utils } from 'xlsx';
+import { read, utils, writeFile } from 'xlsx';
 
 const Wizard = () => {
     const [step, setStep] = useState(0);
@@ -56,8 +56,25 @@ const Wizard = () => {
         }
     };
 
+    const handleBack = () => {
+        setStep(step - 1);
+    };
+
     const handleFileUpload = (event) => {
         setFile(event.target.files[0]);
+    };
+
+    const downloadTemplate = () => {
+        const headers = [
+            'name', 'key', 'categoryId', 'sendableCustomObjectField', 'sendableSubscriberField',
+            'fields__name', 'fields__type', 'fields__length', 'fields__ordinal', 'fields__isPrimaryKey',
+            'fields__isNullable', 'fields__isTemplateField', 'fields__isInheritable', 'fields__isOverridable',
+            'fields__isHidden', 'fields__isReadOnly', 'fields__mustOverride'
+        ];
+        const worksheet = utils.aoa_to_sheet([headers]);
+        const workbook = utils.book_new();
+        utils.book_append_sheet(workbook, worksheet, 'Template');
+        writeFile(workbook, 'data_extension_template.xlsx');
     };
 
     const parseCsv = (file) => {
@@ -73,6 +90,8 @@ const Wizard = () => {
                 const dataExtensions = [];
                 let currentDataExtension = null;
 
+                const toBoolean = (value) => value === 'true' || value === true;
+
                 csvData.slice(1).forEach(row => {
                     if (!currentDataExtension || row[0] !== currentDataExtension.name || row[1] !== currentDataExtension.key) {
                         currentDataExtension = {
@@ -87,21 +106,21 @@ const Wizard = () => {
                         dataExtensions.push(currentDataExtension);
                     }
 
-                    for (let i = 5; i < headers.length; i += 12) {
+                    for (let i = 5; i < headers.length; i += 11) {
                         if (row[i] !== undefined && row[i + 1] !== undefined) {
                             const field = {
                                 name: row[i],
                                 type: row[i + 1],
                                 length: parseInt(row[i + 2], 10),
                                 ordinal: parseInt(row[i + 3], 10),
-                                isPrimaryKey: row[i + 4].toLowerCase() === 'true',
-                                isNullable: row[i + 5].toLowerCase() === 'true',
-                                isTemplateField: row[i + 6].toLowerCase() === 'true',
-                                isInheritable: row[i + 7].toLowerCase() === 'true',
-                                isOverridable: row[i + 8].toLowerCase() === 'true',
-                                isHidden: row[i + 9].toLowerCase() === 'true',
-                                isReadOnly: row[i + 10].toLowerCase() === 'true',
-                                mustOverride: row[i + 11].toLowerCase() === 'true'
+                                isPrimaryKey: toBoolean(row[i + 4]),
+                                isNullable: toBoolean(row[i + 5]),
+                                isTemplateField: toBoolean(row[i + 6]),
+                                isInheritable: toBoolean(row[i + 7]),
+                                isOverridable: toBoolean(row[i + 8]),
+                                isHidden: toBoolean(row[i + 9]),
+                                isReadOnly: toBoolean(row[i + 10]),
+                                mustOverride: toBoolean(row[i + 11])
                             };
                             currentDataExtension.fields.push(field);
                         }
@@ -151,7 +170,10 @@ const Wizard = () => {
                                 <input type="text" id="restBaseUri" className="slds-input" value={restBaseUri} onChange={(e) => setRestBaseUri(e.target.value)} />
                             </div>
                         </div>
-                        <button className="slds-button slds-button_brand" onClick={handleNext}>Next</button>
+                        <div className="slds-button-group">
+                            <button className="slds-button slds-button_brand" onClick={handleNext}>Next</button>
+                            <button className="slds-button slds-button_neutral" onClick={downloadTemplate}>Download Template</button>
+                        </div>
                     </div>
                 ) : (
                     <div>
@@ -161,7 +183,10 @@ const Wizard = () => {
                                 <input type="file" id="csvFile" className="slds-input" accept=".csv" onChange={handleFileUpload} />
                             </div>
                         </div>
-                        <button className="slds-button slds-button_brand" onClick={handleNext}>Create Data Extensions</button>
+                        <div className="slds-button-group">
+                            <button className="slds-button slds-button_brand" onClick={handleNext}>Create Data Extensions</button>
+                            <button className="slds-button slds-button_neutral" onClick={handleBack}>Back</button>
+                        </div>
                     </div>
                 )}
             </div>
