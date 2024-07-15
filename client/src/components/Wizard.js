@@ -194,6 +194,9 @@ const Wizard = () => {
                         </div>
                     </div>
                 )}
+				<footer className="slds-m-top_large slds-text-align_center">
+                    <p>Developed by Enrico Notaro</p>
+                </footer>
             </div>
         </div>
     );
