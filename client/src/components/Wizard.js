@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { read, utils, writeFile } from 'xlsx';
+import { read, utils } from 'xlsx';
+import { CSVLink } from 'react-csv';
+import Papa from 'papaparse';
 
 const Wizard = () => {
     const [step, setStep] = useState(0);
@@ -71,10 +73,14 @@ const Wizard = () => {
             'fields__isNullable', 'fields__isTemplateField', 'fields__isInheritable', 'fields__isOverridable',
             'fields__isHidden', 'fields__isReadOnly', 'fields__mustOverride'
         ];
-        const worksheet = utils.aoa_to_sheet([headers]);
-        const workbook = utils.book_new();
-        utils.book_append_sheet(workbook, worksheet, 'Template');
-        writeFile(workbook, 'data_extension_template.xlsx');
+        const csvData = Papa.unparse([headers]);
+        const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'data_extension_template.csv';
+        a.click();
+        URL.revokeObjectURL(url);
     };
 
     const parseCsv = (file) => {
