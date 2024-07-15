@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { read, utils } from 'xlsx';
-import { CSVLink } from 'react-csv';
 import Papa from 'papaparse';
 
 const Wizard = () => {
